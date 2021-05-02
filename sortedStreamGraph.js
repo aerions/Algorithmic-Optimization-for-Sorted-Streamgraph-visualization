@@ -1,12 +1,23 @@
+// global variables runtime configuration
+const runSample = true; // if runCode is set to true then the sample code will try to excute
+const doComparison = true; // for comparing the original method and our method
+
 const svgWidth = 1000;
 const svgHeight = 600;
 
 const svg = d3.select('#svg1');
+const svg2 = d3.select('#svg2');
 
-svg.attr("width", svgWidth).attr("height", svgHeight);
-// const svg2 = d3.select('#svg2');
+if (runSample) {
+    svg.attr("width", svgWidth).attr("height", svgHeight);
+    if (doComparison) {
+        svg2.attr("width", svgWidth).attr("height", svgHeight);
+        d3.select('#original-para').html('Original Method');
+    }
+    else
+        svg2.remove();
+}
 
-// svg2.attr("width", svgWidth).attr("height", svgHeight);
 
 // var x = d3.scaleLinear()
 //   .domain([10, 130])
@@ -35,9 +46,9 @@ function streamGraph(svg) {
                 if (layers[a][i] !== layers[b][i])
                     return layers[a][i] < layers[b][i];
             }
-            if (options.name && options.name[a] !== options.name[b])
-                return options.name[a] < options.name[b];
-            return false;
+            // if (options.name && options.name[a] !== options.name[b])
+            //     return options.name[a] < options.name[b];
+            return a < b;
         }
 
         let length = 0;
@@ -255,9 +266,9 @@ function streamGraph(svg) {
             }
         }
         if (calculate === calculate_layout)
-            d3.select('#original-error').html('original ' + errorSum);
+            d3.select('#original-error').html('actual original error: ' + errorSum);
         else
-            d3.select('#dp-error').html('dp ' + errorSum);
+            d3.select('#dp-error').html('actual dp error: ' + errorSum);
     }
 
     const error = (err) => {
@@ -280,34 +291,41 @@ function streamGraph(svg) {
     return stream_graph;
 }
 
-let stream_graph = streamGraph(svg);
-// let stream_graph2 = streamGraph(svg2);
+if (runSample) {
+    const dataCount = 5;
+    const data = generateData(dataCount);
+    console.log('this is data');
+    console.log(data);
 
-const options = {
-    title: 'Stream Graph Demo'.toUpperCase(),
-    subtitle: 'This is subtitle. Show more information about the stream graph',
-    name: ['Stream1', 'Stream2', 'Stream3', 'Stream4', 'Stream5', 'Stream6'],
-}
+    let stream_graph = streamGraph(svg);
+    stream_graph.calculate(calculateLayoutByDynamic);
+    stream_graph(data);
 
-const dataCount = 20;
+    if (doComparison) {
+        let stream_graph2 = streamGraph(svg2);
+        stream_graph2(data);
+    }
+
+    // const options = {
+    //     title: 'Stream Graph Demo'.toUpperCase(),
+    //     subtitle: 'This is subtitle. Show more information about the stream graph',
+    //     name: ['Stream1', 'Stream2', 'Stream3', 'Stream4', 'Stream5', 'Stream6'],
+    // }
+
 // const data = new Array(dataCount).fill(0).map(() => new Array(2).fill(0).map(() => {
 //     return Math.floor(Math.random() * 10) + 1;
 // }));
 
-const data = generateData(dataCount);
-console.log('this is data');
-console.log(data);
 
 
 // stream_graph(data);
-stream_graph.calculate(calculateLayoutByDynamic);
 // stream_graph([[4, 1,3, 2],[3,2,2,4], [2,3,5,2], [1,1,7,3], [0, 3, 5, 2], [0, 1, 3, 3], [0, 1, 0, 5]], options)
 // stream_graph([[16, 3], [3, 1], [0, 22], [4, 7], [8, 8], [0, 2], [0, 2]])
 
-stream_graph(data);
 
 // stream_graph([[3,4],[1,5],[1,6]])
-// TODO add a new function for calculating the layers position
+
+}
 
 function calculateLayoutByDynamic(layers) {
 
@@ -431,7 +449,6 @@ function calculateLayoutByDynamic(layers) {
         return sHeight[t][s] - sHeight[t][e] + paddings;
     }
 
-    // TODO complete the dp part
 
     if (lenLayer > 2) {
         throw new Error('the length must less than or equal to 2');
@@ -591,7 +608,9 @@ function calculateLayoutByDynamic(layers) {
 
 
     const finalError = dp(maxHeight, maxHeight, numLayer, numLayer);
-    d3.select('#error').html('Error: ' + finalError)
+    if (runSample)
+        d3.select('#error').html('DP error: ' + finalError)
+
     console.log(dp(maxHeight, maxHeight, numLayer, numLayer));
     console.log(f, mark, from);
 
